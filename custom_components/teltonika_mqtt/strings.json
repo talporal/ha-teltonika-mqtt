@@ -1,9 +1,10 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "confirm": {
-        "title": "Add Teltonika RUT956",
-        "description": "Add the Teltonika RUT956 with serial number {serial}?"
+        "title": "Add {model}",
+        "description": "Discovered Teltonika {model}.\n\nSerial: {serial}\n\n{details}"
       }
     },
     "abort": {
