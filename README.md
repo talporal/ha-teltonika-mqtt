@@ -35,3 +35,8 @@ The built-in Home Assistant MQTT integration must already be configured.
 ## Status
 
 Experimental. Test on the reference RUT956 before fleet deployment.
+
+
+## Local geocoding data
+
+The optional local **Geocoded Location** sensor performs offline lookup from bundled locality data. Turkey locality coordinates are derived from [Open Admin Data](https://openadmindata.org/tr/) and are licensed CC BY 4.0. Northern Cyprus uses Turkish district names and representative points maintained by this integration. No coordinates are sent to an external geocoding service.
