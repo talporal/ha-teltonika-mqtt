@@ -2,10 +2,6 @@ name: Build geocoding polygons
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - scripts/build_geocoding.py
-      - .github/workflows/build-geocoding.yml
 
 permissions:
   contents: write
