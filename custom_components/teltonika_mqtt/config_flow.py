@@ -28,6 +28,12 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._operator: str | None = None
         self._network: str | None = None
 
+    def _title(self) -> str:
+        """Return the fleet-friendly discovery/config entry title."""
+        if self._device_name:
+            return f"{self._device_name} — {self._model} — {self._serial}"
+        return f"Teltonika {self._model} — {self._serial}"
+
     async def async_step_mqtt(
         self, discovery_info: MqttServiceInfo
     ) -> config_entries.ConfigFlowResult:
@@ -63,9 +69,8 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if isinstance(network, str) and network:
                     self._network = network
 
-        name = self._device_name or f"Teltonika {self._model} {self._serial}"
         self.context["title_placeholders"] = {
-            "name": name,
+            "name": self._title(),
             "serial": self._serial,
             "model": self._model,
         }
@@ -78,10 +83,9 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if self._serial is None:
             return self.async_abort(reason="invalid_topic")
 
-        title = self._device_name or f"Teltonika {self._model} {self._serial}"
         if user_input is not None:
             return self.async_create_entry(
-                title=title,
+                title=self._title(),
                 data={CONF_SERIAL: self._serial},
             )
 

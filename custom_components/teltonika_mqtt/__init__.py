@@ -8,6 +8,7 @@ from typing import Any, Callable
 from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 
 from .const import (
     CONF_SERIAL,
@@ -16,14 +17,21 @@ from .const import (
     TOPIC_MODBUS_RESPONSE,
     TOPIC_TELEMETRY,
 )
+from .entity import device_name
 
 
 class TeltonikaRouter:
     """Runtime representation of one Teltonika router."""
 
-    def __init__(self, hass: HomeAssistant, serial: str) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        serial: str,
+        entry_id: str | None = None,
+    ) -> None:
         self.hass = hass
         self.serial = serial
+        self.entry_id = entry_id
         self.data: dict[str, Any] = {}
         self.last_response: dict[str, Any] | None = None
         self._listeners: set[Callable[[], None]] = set()
@@ -45,6 +53,23 @@ class TeltonikaRouter:
             listener()
 
     @callback
+    def _update_device_name(self) -> None:
+        """Update the HA device registry from the configured router name."""
+        if not self.entry_id:
+            return
+
+        name = device_name(self.data)
+        if not name:
+            return
+
+        registry = dr.async_get(self.hass)
+        device = registry.async_get_device(
+            identifiers={(DOMAIN, self.serial)}
+        )
+        if device is not None and device.name != name:
+            registry.async_update_device(device.id, name=name)
+
+    @callback
     def handle_telemetry(self, msg: mqtt.ReceiveMessage) -> None:
         """Process telemetry JSON."""
         try:
@@ -53,6 +78,7 @@ class TeltonikaRouter:
             return
         if isinstance(payload, dict):
             self.data = payload
+            self._update_device_name()
             self._notify()
 
     @callback
@@ -70,7 +96,7 @@ class TeltonikaRouter:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a discovered Teltonika router."""
     serial = entry.data[CONF_SERIAL]
-    router = TeltonikaRouter(hass, serial)
+    router = TeltonikaRouter(hass, serial, entry.entry_id)
 
     if not await mqtt.async_wait_for_mqtt_client(hass):
         return False
