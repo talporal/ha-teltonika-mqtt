@@ -19,6 +19,11 @@ class TeltonikaEntity(Entity):
         self._attr_unique_id = f"{router.serial}_{key}"
 
     @property
+    def available(self) -> bool:
+        """Return whether fresh telemetry is available from the router."""
+        return self.router.telemetry_available()
+
+    @property
     def device_info(self) -> DeviceInfo:
         model = device_model(self.router.data)
         name = device_name(self.router.data)
