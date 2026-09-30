@@ -8,7 +8,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
-from .entity import TeltonikaEntity, nested
+from .entity import TeltonikaEntity
+from .helpers import nested
 
 
 async def async_setup_entry(
