@@ -156,6 +156,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         runtime = hass.data[DOMAIN].pop(entry.entry_id)
+        router = runtime["router"]
+        if router._offline_timer is not None:
+            router._offline_timer()
+            router._offline_timer = None
         for unsub in runtime["unsubs"]:
             unsub()
     return unloaded
