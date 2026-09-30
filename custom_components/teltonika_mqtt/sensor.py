@@ -45,7 +45,7 @@ SENSORS = (
     SensorDescription("sinr", "SINR", ("gsm", "sinr"), "dB", category=EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
     SensorDescription("registration", "Mobile registration", ("gsm", "netstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:access-point-network"),
     SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:connection"),
-    SensorDescription("modem_temperature", "Modem temperature", ("gsm", "temp"), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, EntityCategory.DIAGNOSTIC, suggested_precision=1, icon="mdi:thermometer", scale=0.1),
+    SensorDescription("modem_temperature", "Internal temperature", ("gsm", "temp"), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, EntityCategory.DIAGNOSTIC, suggested_precision=1, icon="mdi:thermometer", scale=0.1),
     SensorDescription("uptime", "Uptime", ("device_info", "uptime"), UnitOfTime.SECONDS, SensorDeviceClass.DURATION, EntityCategory.DIAGNOSTIC, icon="mdi:timer-outline"),
     SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:latitude"),
     SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:longitude"),
