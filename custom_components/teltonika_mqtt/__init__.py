@@ -22,23 +22,6 @@ from .const import (
 )
 
 
-def _nested(data: dict[str, Any], *path: str) -> Any:
-    """Read a nested value without importing the entity module."""
-    value: Any = data
-    for key in path:
-        if not isinstance(value, dict):
-            return None
-        value = value.get(key)
-    return value
-
-
-def _device_name(data: dict[str, Any]) -> str | None:
-    """Return the configured router device name."""
-    value = _nested(data, "device_info", "device_name")
-    if isinstance(value, str) and value.strip():
-        return value.strip()
-    return None
-
 
 class TeltonikaRouter:
     """Runtime representation of one Teltonika router."""
