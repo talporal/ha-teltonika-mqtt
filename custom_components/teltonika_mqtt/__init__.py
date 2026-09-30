@@ -10,9 +10,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 
-from .const import (
+from .helpers import device_model, device_name, firmware_version, hardware_version\n\nfrom .const import (
     CONF_SERIAL,
-    DOMAIN,
+    DOMAIN,\n    MANUFACTURER,
     PLATFORMS,
     TOPIC_MODBUS_RESPONSE,
     TOPIC_TELEMETRY,
@@ -75,7 +75,7 @@ class TeltonikaRouter:
         if not self.entry_id:
             return
 
-        name = _device_name(self.data)
+        name = device_name(self.data)
         if not name:
             return
 
@@ -83,8 +83,16 @@ class TeltonikaRouter:
         device = registry.async_get_device(
             identifiers={(DOMAIN, self.serial)}
         )
-        if device is not None and device.name != name:
-            registry.async_update_device(device.id, name=name)
+        if device is not None:
+            registry.async_update_device(
+                device.id,
+                name=name,
+                manufacturer=MANUFACTURER,
+                model=device_model(self.data),
+                serial_number=self.serial,
+                hw_version=hardware_version(self.data),
+                sw_version=firmware_version(self.data),
+            )
 
     @callback
     def handle_telemetry(self, msg: mqtt.ReceiveMessage) -> None:
