@@ -9,7 +9,7 @@ from homeassistant import config_entries
 from homeassistant.helpers.service_info.mqtt import MqttServiceInfo
 
 from .const import CONF_SERIAL, DEFAULT_MODEL, DOMAIN
-from .entity import device_model, device_name
+from .helpers import device_model, device_name
 
 _TOPIC_RE = re.compile(r"^teltonika/([^/]+)/telemetry$")
 
