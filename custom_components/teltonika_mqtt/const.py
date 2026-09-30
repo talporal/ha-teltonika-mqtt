@@ -1,7 +1,7 @@
 """Constants for Teltonika MQTT."""
 
 DOMAIN = "teltonika_mqtt"
-PLATFORMS = ["sensor", "binary_sensor", "switch"]
+PLATFORMS = ["sensor", "binary_sensor", "switch", "device_tracker"]
 
 CONF_SERIAL = "serial"
 
