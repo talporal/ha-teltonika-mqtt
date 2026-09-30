@@ -10,6 +10,7 @@ from homeassistant.components import mqtt
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.event import async_call_later
 
 from .helpers import device_model, device_name, firmware_version, hardware_version
 
@@ -40,6 +41,7 @@ class TeltonikaRouter:
         self.last_response: dict[str, Any] | None = None
         self.last_telemetry_monotonic: float | None = None
         self._listeners: set[Callable[[], None]] = set()
+        self._offline_timer: Callable[[], None] | None = None
 
     @callback
     def add_listener(self, listener: Callable[[], None]) -> Callable[[], None]:
@@ -92,6 +94,11 @@ class TeltonikaRouter:
         if isinstance(payload, dict):
             self.data = payload
             self.last_telemetry_monotonic = time.monotonic()
+            if self._offline_timer is not None:
+                self._offline_timer()
+            self._offline_timer = async_call_later(
+                self.hass, 30.0, lambda _now: self._notify()
+            )
             self._update_device_name()
             self._notify()
 
