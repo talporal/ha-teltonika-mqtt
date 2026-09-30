@@ -1,0 +1,25 @@
+name: Build geocoding polygons
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/build_geocoding.py
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build compact polygon bundle
+        run: python scripts/build_geocoding.py
+      - name: Commit generated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add custom_components/teltonika_mqtt/data/geocoding_polygons.json
+          git diff --cached --quiet || git commit -m "Generate local district polygon data"
+          git push
