@@ -77,6 +77,42 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         self._attr_icon = description.icon
 
     @property
+    def icon(self) -> str | None:
+        """Return a dynamic signal icon where appropriate."""
+        value = nested(self.router.data, *self.description.path)
+        if not isinstance(value, (int, float)):
+            return self.description.icon
+
+        if self.description.key in ("rssi", "rsrp"):
+            if value >= -70:
+                return "mdi:signal-cellular-3"
+            if value >= -85:
+                return "mdi:signal-cellular-2"
+            if value >= -100:
+                return "mdi:signal-cellular-1"
+            return "mdi:signal-cellular-outline"
+
+        if self.description.key == "rsrq":
+            if value >= -10:
+                return "mdi:signal-cellular-3"
+            if value >= -15:
+                return "mdi:signal-cellular-2"
+            if value >= -20:
+                return "mdi:signal-cellular-1"
+            return "mdi:signal-cellular-outline"
+
+        if self.description.key == "sinr":
+            if value >= 20:
+                return "mdi:signal-cellular-3"
+            if value >= 13:
+                return "mdi:signal-cellular-2"
+            if value >= 0:
+                return "mdi:signal-cellular-1"
+            return "mdi:signal-cellular-outline"
+
+        return self.description.icon
+
+    @property
     def native_value(self) -> Any:
         """Return current telemetry value."""
         value = nested(self.router.data, *self.description.path)
