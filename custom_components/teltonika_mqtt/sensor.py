@@ -11,7 +11,6 @@ from homeassistant.const import (
     EntityCategory,
     UnitOfElectricPotential,
     UnitOfTemperature,
-    UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -133,7 +132,19 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
             ):
                 return None
             return geocode_location(float(latitude), float(longitude))
-        if self.description.key == "uptime" and isinstance(value, (int, float)):\n            seconds = max(0, int(value))\n            days, remainder = divmod(seconds, 86400)\n            hours, remainder = divmod(remainder, 3600)\n            minutes, seconds = divmod(remainder, 60)\n            if days:\n                return f"{days}d {hours}h {minutes}m"\n            if hours:\n                return f"{hours}h {minutes}m {seconds}s"\n            if minutes:\n                return f"{minutes}m {seconds}s"\n            return f"{seconds}s"\n        if self.description.key == "mobile_ip" and isinstance(value, list):
+        if self.description.key == "uptime" and isinstance(value, (int, float)):
+            seconds = max(0, int(value))
+            days, remainder = divmod(seconds, 86400)
+            hours, remainder = divmod(remainder, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            if days:
+                return f"{days}d {hours}h {minutes}m"
+            if hours:
+                return f"{hours}h {minutes}m {seconds}s"
+            if minutes:
+                return f"{minutes}m {seconds}s"
+            return f"{seconds}s"
+        if self.description.key == "mobile_ip" and isinstance(value, list):
             return value[0] if value else None
         if self.description.key in ("gnss_latitude", "gnss_longitude"):
             fix_status = nested(self.router.data, "gnss", "fix_status")
