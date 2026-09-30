@@ -6,7 +6,7 @@ import json
 import time
 
 from homeassistant.components import mqtt
-from homeassistant.components.button import ButtonEntity
+from homeassistant.components.button import ButtonDeviceClass, ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -32,6 +32,7 @@ class TeltonikaRebootButton(TeltonikaEntity, ButtonEntity):
 
     _attr_name = "Reboot"
     _attr_icon = "mdi:restart"
+    _attr_device_class = ButtonDeviceClass.RESTART
 
     def __init__(self, router) -> None:
         super().__init__(router, "reboot")
