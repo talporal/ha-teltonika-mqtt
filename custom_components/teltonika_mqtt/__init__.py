@@ -10,9 +10,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 
-from .helpers import device_model, device_name, firmware_version, hardware_version\n\nfrom .const import (
+from .helpers import device_model, device_name, firmware_version, hardware_version
+
+from .const import (
     CONF_SERIAL,
-    DOMAIN,\n    MANUFACTURER,
+    DOMAIN,
+    MANUFACTURER,
     PLATFORMS,
     TOPIC_MODBUS_RESPONSE,
     TOPIC_TELEMETRY,
