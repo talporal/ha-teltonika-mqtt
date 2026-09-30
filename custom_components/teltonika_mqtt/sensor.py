@@ -7,12 +7,18 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfElectricPotential, UnitOfTime
+from homeassistant.const import (
+    EntityCategory,
+    UnitOfElectricPotential,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
-from .entity import TeltonikaEntity\nfrom .helpers import nested
+from .entity import TeltonikaEntity
+from .helpers import nested
 
 
 @dataclass(frozen=True)
@@ -24,23 +30,26 @@ class SensorDescription:
     device_class: SensorDeviceClass | None = None
     category: EntityCategory | None = None
     suggested_precision: int | None = None
+    icon: str | None = None
+    scale: float | None = None
 
 
 SENSORS = (
-    SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1),
-    SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("mobile_ip", "Mobile IP address", ("gsm", "ip"), category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("rssi", "RSSI", ("gsm", "rssi"), "dBm", category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("rsrp", "RSRP", ("gsm", "rsrp"), "dBm", category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("rsrq", "RSRQ", ("gsm", "rsrq"), "dB", category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("sinr", "SINR", ("gsm", "sinr"), "dB", category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("registration", "Mobile registration", ("gsm", "netstate"), category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), category=EntityCategory.DIAGNOSTIC),
-    SensorDescription("uptime", "Uptime", ("device_info", "uptime"), UnitOfTime.SECONDS, SensorDeviceClass.DURATION, EntityCategory.DIAGNOSTIC),
-    SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6),
-    SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6),
-    SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC),
+    SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:flash"),
+    SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC, icon="mdi:cellphone-wireless"),
+    SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC, icon="mdi:network"),
+    SensorDescription("mobile_ip", "Mobile IP address", ("gsm", "ip"), category=EntityCategory.DIAGNOSTIC, icon="mdi:ip-network"),
+    SensorDescription("rssi", "RSSI", ("gsm", "rssi"), "dBm", SensorDeviceClass.SIGNAL_STRENGTH, EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
+    SensorDescription("rsrp", "RSRP", ("gsm", "rsrp"), "dBm", SensorDeviceClass.SIGNAL_STRENGTH, EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
+    SensorDescription("rsrq", "RSRQ", ("gsm", "rsrq"), "dB", category=EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
+    SensorDescription("sinr", "SINR", ("gsm", "sinr"), "dB", category=EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
+    SensorDescription("registration", "Mobile registration", ("gsm", "netstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:access-point-network"),
+    SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:connection"),
+    SensorDescription("modem_temperature", "Modem temperature", ("gsm", "temp"), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, EntityCategory.DIAGNOSTIC, suggested_precision=1, icon="mdi:thermometer", scale=0.1),
+    SensorDescription("uptime", "Uptime", ("device_info", "uptime"), UnitOfTime.SECONDS, SensorDeviceClass.DURATION, EntityCategory.DIAGNOSTIC, icon="mdi:timer-outline"),
+    SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:latitude"),
+    SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:longitude"),
+    SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC, icon="mdi:satellite-variant"),
 )
 
 
@@ -65,6 +74,7 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         self._attr_device_class = description.device_class
         self._attr_entity_category = description.category
         self._attr_suggested_display_precision = description.suggested_precision
+        self._attr_icon = description.icon
 
     @property
     def native_value(self) -> Any:
@@ -77,4 +87,6 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
             satellites = nested(self.router.data, "gnss", "satellites")
             if not fix_status or not isinstance(satellites, (int, float)) or satellites <= 0:
                 return None
+        if self.description.scale is not None and isinstance(value, (int, float)):
+            return value * self.description.scale
         return value
