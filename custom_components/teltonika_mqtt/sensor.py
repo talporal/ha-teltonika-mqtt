@@ -47,7 +47,7 @@ SENSORS = (
     SensorDescription("registration", "Mobile registration", ("gsm", "netstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:access-point-network"),
     SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:connection"),
     SensorDescription("modem_temperature", "Internal temperature", ("gsm", "temp"), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, EntityCategory.DIAGNOSTIC, suggested_precision=1, icon="mdi:thermometer", scale=0.1),
-    SensorDescription("uptime", "Uptime", ("device_info", "uptime"), UnitOfTime.SECONDS, SensorDeviceClass.DURATION, EntityCategory.DIAGNOSTIC, icon="mdi:timer-outline"),
+    SensorDescription("uptime", "Uptime", ("device_info", "uptime"), category=EntityCategory.DIAGNOSTIC, icon="mdi:timer-outline"),
     SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:latitude"),
     SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:longitude"),
     SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC, icon="mdi:satellite-variant"),
@@ -133,7 +133,7 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
             ):
                 return None
             return geocode_location(float(latitude), float(longitude))
-        if self.description.key == "mobile_ip" and isinstance(value, list):
+        if self.description.key == "uptime" and isinstance(value, (int, float)):\n            seconds = max(0, int(value))\n            days, remainder = divmod(seconds, 86400)\n            hours, remainder = divmod(remainder, 3600)\n            minutes, seconds = divmod(remainder, 60)\n            if days:\n                return f"{days}d {hours}h {minutes}m"\n            if hours:\n                return f"{hours}h {minutes}m {seconds}s"\n            if minutes:\n                return f"{minutes}m {seconds}s"\n            return f"{seconds}s"\n        if self.description.key == "mobile_ip" and isinstance(value, list):
             return value[0] if value else None
         if self.description.key in ("gnss_latitude", "gnss_longitude"):
             fix_status = nested(self.router.data, "gnss", "fix_status")
