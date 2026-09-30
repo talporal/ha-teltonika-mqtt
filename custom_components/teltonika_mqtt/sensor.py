@@ -19,6 +19,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import DOMAIN
 from .entity import TeltonikaEntity
 from .helpers import nested
+from .geocoding import geocode_location
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,7 @@ SENSORS = (
     SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:latitude"),
     SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:longitude"),
     SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC, icon="mdi:satellite-variant"),
+    SensorDescription("geocoded_location", "Geocoded Location", ("gnss", "latitude"), category=EntityCategory.DIAGNOSTIC, icon="mdi:map-marker"),
 )
 
 
@@ -116,6 +118,21 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
     def native_value(self) -> Any:
         """Return current telemetry value."""
         value = nested(self.router.data, *self.description.path)
+        if self.description.key == "geocoded_location":
+            fix_status = nested(self.router.data, "gnss", "fix_status")
+            satellites = nested(self.router.data, "gnss", "satellites")
+            latitude = nested(self.router.data, "gnss", "latitude")
+            longitude = nested(self.router.data, "gnss", "longitude")
+            if (
+                not fix_status
+                or not isinstance(satellites, (int, float))
+                or satellites <= 0
+                or not isinstance(latitude, (int, float))
+                or not isinstance(longitude, (int, float))
+                or (latitude == 0 and longitude == 0)
+            ):
+                return None
+            return geocode_location(float(latitude), float(longitude))
         if self.description.key == "mobile_ip" and isinstance(value, list):
             return value[0] if value else None
         if self.description.key in ("gnss_latitude", "gnss_longitude"):
