@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 
 from homeassistant import config_entries
@@ -20,6 +21,10 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize flow."""
         self._serial: str | None = None
+        self._model = "RUT956"
+        self._firmware: str | None = None
+        self._operator: str | None = None
+        self._network: str | None = None
 
     async def async_step_mqtt(
         self, discovery_info: MqttServiceInfo
@@ -33,7 +38,32 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(self._serial)
         self._abort_if_unique_id_configured()
 
-        self.context["title_placeholders"] = {"serial": self._serial}
+        try:
+            payload = json.loads(discovery_info.payload)
+        except (TypeError, ValueError):
+            payload = {}
+
+        if isinstance(payload, dict):
+            base = payload.get("base")
+            gsm = payload.get("gsm")
+            if isinstance(base, dict):
+                firmware = base.get("fw")
+                if isinstance(firmware, str) and firmware.strip():
+                    self._firmware = firmware.strip()
+            if isinstance(gsm, dict):
+                operator = gsm.get("operator")
+                network = gsm.get("conntype")
+                if isinstance(operator, str) and operator:
+                    self._operator = operator
+                if isinstance(network, str) and network:
+                    self._network = network
+
+        name = f"Teltonika {self._model} {self._serial}"
+        self.context["title_placeholders"] = {
+            "name": name,
+            "serial": self._serial,
+            "model": self._model,
+        }
         return await self.async_step_confirm()
 
     async def async_step_confirm(
@@ -45,14 +75,25 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             return self.async_create_entry(
-                title=f"Teltonika RUT956 {self._serial}",
+                title=f"Teltonika {self._model} {self._serial}",
                 data={CONF_SERIAL: self._serial},
             )
 
-        self._set_confirm_only()
+        details = []
+        if self._firmware:
+            details.append(f"Firmware: {self._firmware}")
+        if self._operator:
+            details.append(f"Mobile operator: {self._operator}")
+        if self._network:
+            details.append(f"Network: {self._network}")
+
         return self.async_show_form(
             step_id="confirm",
-            description_placeholders={"serial": self._serial},
+            description_placeholders={
+                "serial": self._serial,
+                "model": self._model,
+                "details": "\n".join(details) if details else "Telemetry received",
+            },
         )
 
     async def async_step_user(
