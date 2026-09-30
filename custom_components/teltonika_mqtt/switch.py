@@ -67,7 +67,8 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
 class TeltonikaIsolatedOutputSwitch(TeltonikaModbusSwitch):
     """RUT956 galvanically isolated open collector output."""
 
-    _attr_name = "Isolated output"
+    _attr_name = "System Fans"
+    _attr_icon = "mdi:fan"
     register_number = ISOLATED_OUTPUT_REGISTER
 
     def __init__(self, router) -> None:
@@ -84,7 +85,8 @@ class TeltonikaIsolatedOutputSwitch(TeltonikaModbusSwitch):
 class TeltonikaRelaySwitch(TeltonikaModbusSwitch):
     """RUT956 relay."""
 
-    _attr_name = "Relay"
+    _attr_name = "GNSS Receiver"
+    _attr_icon = "mdi:satellite-variant"
     register_number = RELAY_REGISTER
 
     def __init__(self, router) -> None:
