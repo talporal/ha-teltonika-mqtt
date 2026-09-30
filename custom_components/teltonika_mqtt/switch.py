@@ -12,7 +12,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN, TOPIC_MODBUS_REQUEST
-from .entity import TeltonikaEntity, nested
+from .entity import TeltonikaEntity
+from .helpers import nested
 
 ISOLATED_OUTPUT_REGISTER = 202
 RELAY_REGISTER = 203
