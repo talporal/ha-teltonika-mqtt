@@ -8,7 +8,8 @@ import re
 from homeassistant import config_entries
 from homeassistant.helpers.service_info.mqtt import MqttServiceInfo
 
-from .const import CONF_SERIAL, DOMAIN
+from .const import CONF_SERIAL, DEFAULT_MODEL, DOMAIN
+from .entity import device_model, device_name
 
 _TOPIC_RE = re.compile(r"^teltonika/([^/]+)/telemetry$")
 
@@ -21,7 +22,8 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize flow."""
         self._serial: str | None = None
-        self._model = "RUT956"
+        self._model = DEFAULT_MODEL
+        self._device_name: str | None = None
         self._firmware: str | None = None
         self._operator: str | None = None
         self._network: str | None = None
@@ -44,6 +46,9 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             payload = {}
 
         if isinstance(payload, dict):
+            self._model = device_model(payload)
+            self._device_name = device_name(payload)
+
             base = payload.get("base")
             gsm = payload.get("gsm")
             if isinstance(base, dict):
@@ -58,7 +63,7 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if isinstance(network, str) and network:
                     self._network = network
 
-        name = f"Teltonika {self._model} {self._serial}"
+        name = self._device_name or f"Teltonika {self._model} {self._serial}"
         self.context["title_placeholders"] = {
             "name": name,
             "serial": self._serial,
@@ -73,13 +78,16 @@ class TeltonikaMqttConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if self._serial is None:
             return self.async_abort(reason="invalid_topic")
 
+        title = self._device_name or f"Teltonika {self._model} {self._serial}"
         if user_input is not None:
             return self.async_create_entry(
-                title=f"Teltonika {self._model} {self._serial}",
+                title=title,
                 data={CONF_SERIAL: self._serial},
             )
 
         details = []
+        if self._device_name:
+            details.append(f"Device name: {self._device_name}")
         if self._firmware:
             details.append(f"Firmware: {self._firmware}")
         if self._operator:
