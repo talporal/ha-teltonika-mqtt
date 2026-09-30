@@ -23,10 +23,11 @@ class SensorDescription:
     unit: str | None = None
     device_class: SensorDeviceClass | None = None
     category: EntityCategory | None = None
+    suggested_precision: int | None = None
 
 
 SENSORS = (
-    SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE),
+    SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1),
     SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC),
     SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC),
     SensorDescription("mobile_ip", "Mobile IP address", ("gsm", "ip"), category=EntityCategory.DIAGNOSTIC),
@@ -36,6 +37,9 @@ SENSORS = (
     SensorDescription("sinr", "SINR", ("gsm", "sinr"), "dB", category=EntityCategory.DIAGNOSTIC),
     SensorDescription("registration", "Mobile registration", ("gsm", "netstate"), category=EntityCategory.DIAGNOSTIC),
     SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), category=EntityCategory.DIAGNOSTIC),
+    SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6),
+    SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6),
+    SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC),
 )
 
 
@@ -59,6 +63,7 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         self._attr_native_unit_of_measurement = description.unit
         self._attr_device_class = description.device_class
         self._attr_entity_category = description.category
+        self._attr_suggested_display_precision = description.suggested_precision
 
     @property
     def native_value(self) -> Any:
@@ -66,4 +71,9 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         value = nested(self.router.data, *self.description.path)
         if self.description.key == "mobile_ip" and isinstance(value, list):
             return value[0] if value else None
+        if self.description.key in ("gnss_latitude", "gnss_longitude"):
+            fix_status = nested(self.router.data, "gnss", "fix_status")
+            satellites = nested(self.router.data, "gnss", "satellites")
+            if not fix_status or not isinstance(satellites, (int, float)) or satellites <= 0:
+                return None
         return value
