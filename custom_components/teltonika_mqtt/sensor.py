@@ -35,6 +35,7 @@ class SensorDescription:
 
 
 SENSORS = (
+    SensorDescription("router_status", "Status", ("base", "time"), category=EntityCategory.DIAGNOSTIC, icon="mdi:router-wireless"),
     SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:flash"),
     SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC, icon="mdi:cellphone-wireless"),
     SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC, icon="mdi:network"),
@@ -78,6 +79,13 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         self._attr_icon = description.icon
 
     @property
+    def available(self) -> bool:
+        """Keep the status sensor available so it can explicitly report Offline."""
+        if self.description.key == "router_status":
+            return True
+        return super().available
+
+    @property
     def icon(self) -> str | None:
         """Return a dynamic signal icon where appropriate."""
         value = nested(self.router.data, *self.description.path)
@@ -117,6 +125,8 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
     def native_value(self) -> Any:
         """Return current telemetry value."""
         value = nested(self.router.data, *self.description.path)
+        if self.description.key == "router_status":
+            return "Online" if self.router.telemetry_available() else "Offline"
         if self.description.key == "geocoded_location":
             fix_status = nested(self.router.data, "gnss", "fix_status")
             satellites = nested(self.router.data, "gnss", "satellites")
