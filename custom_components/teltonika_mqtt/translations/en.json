@@ -1,0 +1,15 @@
+{
+  "config": {
+    "step": {
+      "confirm": {
+        "title": "Add Teltonika RUT956",
+        "description": "Add the Teltonika RUT956 with serial number {serial}?"
+      }
+    },
+    "abort": {
+      "already_configured": "This router is already configured.",
+      "invalid_topic": "The MQTT discovery topic is invalid.",
+      "mqtt_discovery_required": "No manual configuration is required. Routers are discovered automatically from MQTT telemetry."
+    }
+  }
+}
