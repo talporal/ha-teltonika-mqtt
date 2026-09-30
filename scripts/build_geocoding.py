@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build compact local district polygons for offline reverse geocoding."""
+"""Build compact local district polygons for offline reverse geocoding.\n\nGenerated data is bundled with the integration; no runtime network access is used.\n"""
 
 import json
 import math
