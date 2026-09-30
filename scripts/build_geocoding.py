@@ -10,7 +10,7 @@ BASE = "https://raw.githubusercontent.com/ttezer/turkiye-harita-verisi/master/di
 GEO_URL = BASE + "/geojson/districts.geojson"
 META_URL = BASE + "/json/districts.json"
 OUT = Path("custom_components/teltonika_mqtt/data/geocoding_polygons.json")
-TOLERANCE = 0.00035  # ~30-40 m; keeps the runtime bundle compact.
+TOLERANCE = 0.00035  # ~30-40 m; compact while retaining district-border detail.
 
 
 def fetch_json(url):
