@@ -43,6 +43,7 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
         self._pending_state: bool | None = None
         self._pending_cookie: int | None = None
         self._pending_until = 0.0
+        self._pending_acknowledged = False
 
     async def async_turn_on(self, **kwargs) -> None:
         await self._async_set_output(1)
@@ -55,6 +56,7 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
         self._pending_state = bool(value)
         self._pending_cookie = cookie
         self._pending_until = time.monotonic() + self._pending_timeout
+        self._pending_acknowledged = False
         self.async_write_ha_state()
         payload = {
             "cookie": cookie,
@@ -81,15 +83,14 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
             return actual_state
 
         response = self.router.last_response
-        if (
-            isinstance(response, dict)
-            and response.get("cookie") == self._pending_cookie
-            and response.get("success") is False
-        ):
-            self._clear_pending()
-            return actual_state
+        if isinstance(response, dict) and response.get("cookie") == self._pending_cookie:
+            if response.get("success") is False:
+                self._clear_pending()
+                return actual_state
+            if response.get("success") is True:
+                self._pending_acknowledged = True
 
-        if actual_state == self._pending_state:
+        if self._pending_acknowledged and actual_state == self._pending_state:
             self._clear_pending()
             return actual_state
 
@@ -103,6 +104,7 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
         self._pending_state = None
         self._pending_cookie = None
         self._pending_until = 0.0
+        self._pending_acknowledged = False
 
 
 class TeltonikaIsolatedOutputSwitch(TeltonikaModbusSwitch):
