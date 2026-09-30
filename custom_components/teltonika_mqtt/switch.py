@@ -36,6 +36,13 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
     """Base switch controlled through the MQTT Modbus Gateway."""
 
     register_number: int
+    _pending_timeout = 20.0
+
+    def __init__(self, router, key: str) -> None:
+        super().__init__(router, key)
+        self._pending_state: bool | None = None
+        self._pending_cookie: int | None = None
+        self._pending_until = 0.0
 
     async def async_turn_on(self, **kwargs) -> None:
         await self._async_set_output(1)
@@ -44,8 +51,13 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
         await self._async_set_output(0)
 
     async def _async_set_output(self, value: int) -> None:
+        cookie = time.time_ns()
+        self._pending_state = bool(value)
+        self._pending_cookie = cookie
+        self._pending_until = time.monotonic() + self._pending_timeout
+        self.async_write_ha_state()
         payload = {
-            "cookie": time.time_ns(),
+            "cookie": cookie,
             "type": 0,
             "host": "127.0.0.1",
             "port": 502,
@@ -63,6 +75,35 @@ class TeltonikaModbusSwitch(TeltonikaEntity, SwitchEntity):
             retain=False,
         )
 
+    def _state_with_pending(self, actual_state: bool | None) -> bool | None:
+        """Hold the requested state while stale telemetry catches up."""
+        if self._pending_state is None:
+            return actual_state
+
+        response = self.router.last_response
+        if (
+            isinstance(response, dict)
+            and response.get("cookie") == self._pending_cookie
+            and response.get("success") is False
+        ):
+            self._clear_pending()
+            return actual_state
+
+        if actual_state == self._pending_state:
+            self._clear_pending()
+            return actual_state
+
+        if time.monotonic() >= self._pending_until:
+            self._clear_pending()
+            return actual_state
+
+        return self._pending_state
+
+    def _clear_pending(self) -> None:
+        self._pending_state = None
+        self._pending_cookie = None
+        self._pending_until = 0.0
+
 
 class TeltonikaIsolatedOutputSwitch(TeltonikaModbusSwitch):
     """RUT956 galvanically isolated open collector output."""
@@ -79,7 +120,7 @@ class TeltonikaIsolatedOutputSwitch(TeltonikaModbusSwitch):
         state = nested(self.router.data, "isolated_output", "state")
         if state is None:
             return None
-        return str(state).lower() == "high level"
+        return self._state_with_pending(str(state).lower() == "high level")
 
 
 class TeltonikaRelaySwitch(TeltonikaModbusSwitch):
@@ -97,4 +138,4 @@ class TeltonikaRelaySwitch(TeltonikaModbusSwitch):
         state = nested(self.router.data, "relay", "state")
         if state is None:
             return None
-        return str(state).lower() == "closed"
+        return self._state_with_pending(str(state).lower() == "closed")
