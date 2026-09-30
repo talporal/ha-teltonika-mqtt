@@ -17,7 +17,24 @@ from .const import (
     TOPIC_MODBUS_RESPONSE,
     TOPIC_TELEMETRY,
 )
-from .entity import device_name
+
+
+def _nested(data: dict[str, Any], *path: str) -> Any:
+    """Read a nested value without importing the entity module."""
+    value: Any = data
+    for key in path:
+        if not isinstance(value, dict):
+            return None
+        value = value.get(key)
+    return value
+
+
+def _device_name(data: dict[str, Any]) -> str | None:
+    """Return the configured router device name."""
+    value = _nested(data, "device_info", "device_name")
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
 
 
 class TeltonikaRouter:
@@ -58,7 +75,7 @@ class TeltonikaRouter:
         if not self.entry_id:
             return
 
-        name = device_name(self.data)
+        name = _device_name(self.data)
         if not name:
             return
 
