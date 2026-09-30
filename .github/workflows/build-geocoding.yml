@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - scripts/build_geocoding.py
+      - .github/workflows/build-geocoding.yml
 
 permissions:
   contents: write
@@ -16,6 +17,19 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build compact polygon bundle
         run: python scripts/build_geocoding.py
+      - name: Verify known Beykoz coordinate
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          p = Path("custom_components/teltonika_mqtt/geocoding.py")
+          spec = importlib.util.spec_from_file_location("teltonika_geocoding", p)
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          result = module.geocode_location(41.096034, 29.082406)
+          print("Lookup:", result)
+          assert result == "Beykoz / İstanbul", result
+          PY
       - name: Commit generated data
         run: |
           git config user.name "github-actions[bot]"
