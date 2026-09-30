@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Any, Callable
 
 from homeassistant.components import mqtt
@@ -37,6 +38,7 @@ class TeltonikaRouter:
         self.entry_id = entry_id
         self.data: dict[str, Any] = {}
         self.last_response: dict[str, Any] | None = None
+        self.last_telemetry_monotonic: float | None = None
         self._listeners: set[Callable[[], None]] = set()
 
     @callback
@@ -89,8 +91,16 @@ class TeltonikaRouter:
             return
         if isinstance(payload, dict):
             self.data = payload
+            self.last_telemetry_monotonic = time.monotonic()
             self._update_device_name()
             self._notify()
+
+    def telemetry_available(self, timeout: float = 30.0) -> bool:
+        """Return whether telemetry has been received recently."""
+        return (
+            self.last_telemetry_monotonic is not None
+            and time.monotonic() - self.last_telemetry_monotonic <= timeout
+        )
 
     @callback
     def handle_response(self, msg: mqtt.ReceiveMessage) -> None:
