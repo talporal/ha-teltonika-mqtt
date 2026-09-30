@@ -26,7 +26,7 @@ async def async_setup_entry(
 class TeltonikaGnssTracker(TeltonikaEntity, TrackerEntity):
     """Track a Teltonika router from its GNSS telemetry."""
 
-    _attr_name = "GNSS location"
+    _attr_name = "Location"
     _attr_source_type = SourceType.GPS
 
     def __init__(self, router) -> None:
