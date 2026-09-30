@@ -39,4 +39,4 @@ Experimental. Test on the reference RUT956 before fleet deployment.
 
 ## Local geocoding data
 
-The optional local **Geocoded Location** sensor performs offline lookup from bundled locality data. Turkey locality coordinates are derived from [Open Admin Data](https://openadmindata.org/tr/) and are licensed CC BY 4.0. Northern Cyprus uses Turkish district names and representative points maintained by this integration. No coordinates are sent to an external geocoding service.
+The optional local **Geocoded Location** sensor performs offline lookup from bundled district polygons. Turkey district boundaries are generated from the `ttezer/turkiye-harita-verisi` HDX COD-AB-TUR snapshot (CC BY-IGO) and simplified for the integration. Northern Cyprus currently uses Turkish district names with compact representative-point lookup. No coordinates are sent to an external geocoding service.
