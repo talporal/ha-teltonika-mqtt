@@ -40,6 +40,8 @@ class TeltonikaRouter:
         self.data: dict[str, Any] = {}
         self.last_response: dict[str, Any] | None = None
         self.last_telemetry_monotonic: float | None = None
+        self.connection_state = "offline"
+        self.reboot_pending = False
         self._listeners: set[Callable[[], None]] = set()
         self._offline_timer: Callable[[], None] | None = None
 
@@ -96,18 +98,42 @@ class TeltonikaRouter:
             self.last_telemetry_monotonic = time.monotonic()
             if self._offline_timer is not None:
                 self._offline_timer()
+            if self.connection_state == "offline":
+                self.connection_state = "online"
+                self.reboot_pending = False
+            elif self.reboot_pending:
+                self.connection_state = "rebooting"
+            else:
+                self.connection_state = "online"
+            timeout = 15.0 if self.reboot_pending else 30.0
             self._offline_timer = async_call_later(
-                self.hass, 30.0, lambda _now: self._notify()
+                self.hass, timeout, self._mark_offline
             )
             self._update_device_name()
             self._notify()
 
-    def telemetry_available(self, timeout: float = 30.0) -> bool:
-        """Return whether telemetry has been received recently."""
-        return (
-            self.last_telemetry_monotonic is not None
-            and time.monotonic() - self.last_telemetry_monotonic <= timeout
+    @callback
+    def _mark_offline(self, _now=None) -> None:
+        """Mark the router offline when its telemetry watchdog expires."""
+        self._offline_timer = None
+        self.connection_state = "offline"
+        self._notify()
+
+    @callback
+    def mark_rebooting(self) -> None:
+        """Enter reboot-aware monitoring after a reboot command is sent."""
+        self.reboot_pending = True
+        self.connection_state = "rebooting"
+        if self._offline_timer is not None:
+            self._offline_timer()
+        self._offline_timer = async_call_later(
+            self.hass, 15.0, self._mark_offline
         )
+        self._notify()
+
+    def telemetry_available(self) -> bool:
+        """Return whether the router currently has live telemetry."""
+        return self.connection_state != "offline"
 
     @callback
     def handle_response(self, msg: mqtt.ReceiveMessage) -> None:
