@@ -126,7 +126,7 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         """Return current telemetry value."""
         value = nested(self.router.data, *self.description.path)
         if self.description.key == "router_status":
-            return "Online" if self.router.telemetry_available() else "Offline"
+            return self.router.connection_state.capitalize()
         if self.description.key == "geocoded_location":
             fix_status = nested(self.router.data, "gnss", "fix_status")
             satellites = nested(self.router.data, "gnss", "satellites")
