@@ -105,7 +105,7 @@ class TeltonikaRouter:
                 self.connection_state = "rebooting"
             else:
                 self.connection_state = "online"
-            timeout = 15.0 if self.reboot_pending else 30.0
+            timeout = 60.0 if self.reboot_pending else 30.0
             self._offline_timer = async_call_later(
                 self.hass, timeout, self._mark_offline
             )
@@ -127,7 +127,7 @@ class TeltonikaRouter:
         if self._offline_timer is not None:
             self._offline_timer()
         self._offline_timer = async_call_later(
-            self.hass, 15.0, self._mark_offline
+            self.hass, 60.0, self._mark_offline
         )
         self._notify()
 
