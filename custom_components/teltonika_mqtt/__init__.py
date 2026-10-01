@@ -7,9 +7,11 @@ import time
 from typing import Any, Callable
 
 from homeassistant.components import mqtt
+from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_call_later
 
 from .helpers import device_model, device_name, firmware_version, hardware_version
@@ -105,7 +107,7 @@ class TeltonikaRouter:
                 self.connection_state = "rebooting"
             else:
                 self.connection_state = "online"
-            timeout = 60.0 if self.reboot_pending else 30.0
+            timeout = 180.0 if self.reboot_pending else 30.0
             self._offline_timer = async_call_later(
                 self.hass, timeout, self._mark_offline
             )
@@ -127,7 +129,7 @@ class TeltonikaRouter:
         if self._offline_timer is not None:
             self._offline_timer()
         self._offline_timer = async_call_later(
-            self.hass, 60.0, self._mark_offline
+            self.hass, 180.0, self._mark_offline
         )
         self._notify()
 
@@ -147,9 +149,24 @@ class TeltonikaRouter:
             self._notify()
 
 
+@callback
+def _cleanup_retired_entities(hass: HomeAssistant, serial: str) -> None:
+    """Remove entities retired by newer integration versions."""
+    entity_registry = er.async_get(hass)
+    retired_entities = (
+        (BINARY_SENSOR_DOMAIN, f"{serial}_isolated_output"),
+    )
+    for platform, unique_id in retired_entities:
+        if entity_id := entity_registry.async_get_entity_id(
+            platform, DOMAIN, unique_id
+        ):
+            entity_registry.async_remove(entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a discovered Teltonika router."""
     serial = entry.data[CONF_SERIAL]
+    _cleanup_retired_entities(hass, serial)
     router = TeltonikaRouter(hass, serial, entry.entry_id)
 
     if not await mqtt.async_wait_for_mqtt_client(hass):
