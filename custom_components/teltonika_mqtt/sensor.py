@@ -39,19 +39,19 @@ SENSORS = (
     SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:flash"),
     SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC, icon="mdi:cellphone-wireless"),
     SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC, icon="mdi:network"),
-    SensorDescription("mobile_ip", "Mobile IP address", ("gsm", "ip"), category=EntityCategory.DIAGNOSTIC, icon="mdi:ip-network"),
+    SensorDescription("mobile_ip", "Mobile IP address", ("gsm", "ip"), icon="mdi:ip-network"),
     SensorDescription("rssi", "RSSI", ("gsm", "rssi"), "dBm", SensorDeviceClass.SIGNAL_STRENGTH, EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
     SensorDescription("rsrp", "RSRP", ("gsm", "rsrp"), "dBm", SensorDeviceClass.SIGNAL_STRENGTH, EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
     SensorDescription("rsrq", "RSRQ", ("gsm", "rsrq"), "dB", category=EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
     SensorDescription("sinr", "SINR", ("gsm", "sinr"), "dB", category=EntityCategory.DIAGNOSTIC, icon="mdi:signal"),
     SensorDescription("registration", "Mobile registration", ("gsm", "netstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:access-point-network"),
-    SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), category=EntityCategory.DIAGNOSTIC, icon="mdi:connection"),
+    SensorDescription("connection", "Mobile connection", ("gsm", "connstate"), icon="mdi:connection"),
     SensorDescription("modem_temperature", "Internal temperature", ("gsm", "temp"), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, EntityCategory.DIAGNOSTIC, suggested_precision=1, icon="mdi:thermometer", scale=0.1),
     SensorDescription("uptime", "Uptime", ("device_info", "uptime"), category=EntityCategory.DIAGNOSTIC, icon="mdi:timer-outline"),
     SensorDescription("gnss_latitude", "GNSS latitude", ("gnss", "latitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:latitude"),
     SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:longitude"),
     SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC, icon="mdi:satellite-variant"),
-    SensorDescription("geocoded_location", "Geocoded Location", ("gnss", "latitude"), category=EntityCategory.DIAGNOSTIC, icon="mdi:map-marker"),
+    SensorDescription("geocoded_location", "Geocoded Location", ("gnss", "latitude"), icon="mdi:map-marker"),
 )
 
 
