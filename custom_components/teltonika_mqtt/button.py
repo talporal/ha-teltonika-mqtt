@@ -39,6 +39,7 @@ class TeltonikaRebootButton(TeltonikaEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Send the reboot command."""
+        self.router.mark_rebooting()
         payload = {
             "cookie": time.time_ns(),
             "type": 0,
