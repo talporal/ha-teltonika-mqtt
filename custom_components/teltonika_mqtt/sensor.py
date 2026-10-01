@@ -35,7 +35,7 @@ class SensorDescription:
 
 
 SENSORS = (
-    SensorDescription("router_status", "Status", ("base", "time"), category=EntityCategory.DIAGNOSTIC, icon="mdi:router-wireless"),
+    SensorDescription("router_status", "Status", ("base", "time"), icon="mdi:router-wireless"),
     SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:flash"),
     SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC, icon="mdi:cellphone-wireless"),
     SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC, icon="mdi:network"),
