@@ -19,7 +19,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Teltonika binary sensors."""
     router = hass.data[DOMAIN][entry.entry_id]["router"]
-    async_add_entities([TeltonikaIsolatedInput(router), TeltonikaIsolatedOutputState(router)])
+    async_add_entities([TeltonikaIsolatedInput(router)])
 
 
 class TeltonikaIsolatedInput(TeltonikaEntity, BinarySensorEntity):
