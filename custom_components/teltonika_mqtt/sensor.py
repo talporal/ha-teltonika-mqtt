@@ -43,7 +43,7 @@ class SensorDescription:
 
 SENSORS = (
     SensorDescription("router_status", "Status", ("base", "time"), icon="mdi:router-wireless"),
-    SensorDescription("analog_input", "Analog input", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:flash"),
+    SensorDescription("analog_input", "Battery Voltage (DC)", ("analog_input", "value"), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:flash"),
     SensorDescription("mobile_operator", "Mobile operator", ("gsm", "operator"), category=EntityCategory.DIAGNOSTIC, icon="mdi:cellphone-wireless"),
     SensorDescription("network_type", "Network type", ("gsm", "conntype"), category=EntityCategory.DIAGNOSTIC, icon="mdi:network"),
     SensorDescription("mobile_ip", "Mobile IP address", ("gsm", "ip"), icon="mdi:ip-network"),
@@ -61,12 +61,12 @@ SENSORS = (
     SensorDescription("geocoded_location", "Geocoded Location", ("gnss", "latitude"), icon="mdi:map-marker"),
     SensorDescription("environment_temperature", "Environment temperature", (), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, suggested_precision=1, icon="mdi:thermometer", state_class=SensorStateClass.MEASUREMENT),
     SensorDescription("environment_humidity", "Environment humidity", (), PERCENTAGE, SensorDeviceClass.HUMIDITY, suggested_precision=1, icon="mdi:water-percent", state_class=SensorStateClass.MEASUREMENT),
-    SensorDescription("power_voltage", "Voltage", (), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:sine-wave", state_class=SensorStateClass.MEASUREMENT),
-    SensorDescription("power_current", "Current", (), UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, suggested_precision=3, icon="mdi:current-ac", state_class=SensorStateClass.MEASUREMENT),
-    SensorDescription("power_active", "Active power", (), UnitOfPower.WATT, SensorDeviceClass.POWER, suggested_precision=1, icon="mdi:flash", state_class=SensorStateClass.MEASUREMENT),
-    SensorDescription("power_energy", "Energy", (), UnitOfEnergy.WATT_HOUR, SensorDeviceClass.ENERGY, suggested_precision=0, icon="mdi:counter", state_class=SensorStateClass.TOTAL_INCREASING),
-    SensorDescription("power_frequency", "Frequency", (), UnitOfFrequency.HERTZ, SensorDeviceClass.FREQUENCY, suggested_precision=1, icon="mdi:sine-wave", state_class=SensorStateClass.MEASUREMENT),
-    SensorDescription("power_factor", "Power factor", (), None, SensorDeviceClass.POWER_FACTOR, suggested_precision=2, icon="mdi:angle-acute", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_voltage", "AC Voltage", (), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:sine-wave", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_current", "AC Current", (), UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, suggested_precision=3, icon="mdi:current-ac", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_active", "AC Active Power", (), UnitOfPower.WATT, SensorDeviceClass.POWER, suggested_precision=1, icon="mdi:flash", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_energy", "AC Energy", (), UnitOfEnergy.WATT_HOUR, SensorDeviceClass.ENERGY, suggested_precision=0, icon="mdi:counter", state_class=SensorStateClass.TOTAL_INCREASING),
+    SensorDescription("power_frequency", "AC Frequency", (), UnitOfFrequency.HERTZ, SensorDeviceClass.FREQUENCY, suggested_precision=1, icon="mdi:sine-wave", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_factor", "AC Power Factor", (), None, SensorDeviceClass.POWER_FACTOR, suggested_precision=2, icon="mdi:angle-acute", state_class=SensorStateClass.MEASUREMENT),
 )
 
 
