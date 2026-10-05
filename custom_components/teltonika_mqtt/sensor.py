@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from typing import Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EntityCategory,
+    PERCENTAGE,
+    UnitOfElectricCurrent,
     UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
+    UnitOfPower,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
@@ -32,6 +38,7 @@ class SensorDescription:
     suggested_precision: int | None = None
     icon: str | None = None
     scale: float | None = None
+    state_class: SensorStateClass | None = None
 
 
 SENSORS = (
@@ -52,6 +59,14 @@ SENSORS = (
     SensorDescription("gnss_longitude", "GNSS longitude", ("gnss", "longitude"), "°", category=EntityCategory.DIAGNOSTIC, suggested_precision=6, icon="mdi:longitude"),
     SensorDescription("gnss_satellites", "GNSS satellites", ("gnss", "satellites"), category=EntityCategory.DIAGNOSTIC, icon="mdi:satellite-variant"),
     SensorDescription("geocoded_location", "Geocoded Location", ("gnss", "latitude"), icon="mdi:map-marker"),
+    SensorDescription("environment_temperature", "Environment temperature", (), UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, suggested_precision=1, icon="mdi:thermometer", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("environment_humidity", "Environment humidity", (), PERCENTAGE, SensorDeviceClass.HUMIDITY, suggested_precision=1, icon="mdi:water-percent", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_voltage", "Voltage", (), UnitOfElectricPotential.VOLT, SensorDeviceClass.VOLTAGE, suggested_precision=1, icon="mdi:sine-wave", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_current", "Current", (), UnitOfElectricCurrent.AMPERE, SensorDeviceClass.CURRENT, suggested_precision=3, icon="mdi:current-ac", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_active", "Active power", (), UnitOfPower.WATT, SensorDeviceClass.POWER, suggested_precision=1, icon="mdi:flash", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_energy", "Energy", (), UnitOfEnergy.WATT_HOUR, SensorDeviceClass.ENERGY, suggested_precision=0, icon="mdi:counter", state_class=SensorStateClass.TOTAL_INCREASING),
+    SensorDescription("power_frequency", "Frequency", (), UnitOfFrequency.HERTZ, SensorDeviceClass.FREQUENCY, suggested_precision=1, icon="mdi:sine-wave", state_class=SensorStateClass.MEASUREMENT),
+    SensorDescription("power_factor", "Power factor", (), None, SensorDeviceClass.POWER_FACTOR, suggested_precision=2, icon="mdi:angle-acute", state_class=SensorStateClass.MEASUREMENT),
 )
 
 
@@ -77,6 +92,7 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         self._attr_entity_category = description.category
         self._attr_suggested_display_precision = description.suggested_precision
         self._attr_icon = description.icon
+        self._attr_state_class = description.state_class
 
     @property
     def available(self) -> bool:
@@ -124,6 +140,8 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return current telemetry value."""
+        if self.description.key.startswith(("environment_", "power_")):
+            return self._modbus_value()
         value = nested(self.router.data, *self.description.path)
         if self.description.key == "router_status":
             return self.router.connection_state.capitalize()
@@ -164,3 +182,40 @@ class TeltonikaSensor(TeltonikaEntity, SensorEntity):
         if self.description.scale is not None and isinstance(value, (int, float)):
             return value * self.description.scale
         return value
+
+    def _modbus_value(self) -> Any:
+        """Decode supported Modbus request payloads from Data to Server."""
+        records = self.router.data.get("Modbus")
+        if not isinstance(records, list):
+            return None
+        request_name = "Environment" if self.description.key.startswith("environment_") else "PowerMeter"
+        record = next((item for item in records if isinstance(item, dict) and item.get("name") == request_name), None)
+        if record is None:
+            return None
+        raw_data = record.get("data")
+        try:
+            values = json.loads(raw_data) if isinstance(raw_data, str) else raw_data
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(values, list):
+            return None
+        try:
+            if self.description.key == "environment_temperature":
+                return float(values[0]) / 10
+            if self.description.key == "environment_humidity":
+                return float(values[1]) / 10
+            if self.description.key == "power_voltage":
+                return float(values[0]) / 10
+            if self.description.key == "power_current":
+                return (int(values[1]) + (int(values[2]) << 16)) / 1000
+            if self.description.key == "power_active":
+                return (int(values[3]) + (int(values[4]) << 16)) / 10
+            if self.description.key == "power_energy":
+                return int(values[5]) + (int(values[6]) << 16)
+            if self.description.key == "power_frequency":
+                return float(values[7]) / 10
+            if self.description.key == "power_factor":
+                return float(values[8]) / 100
+        except (IndexError, TypeError, ValueError):
+            return None
+        return None
